@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 
 import { PlayButton, Progress, Timer } from 'react-soundplayer/components';
 
+import Waveform from "react-audio-waveform"
+
 const DEFAULT_DURATION = 456.1495; // have to use this become modifying the audio file breaks 2x speed
 const DEFAULT_MP3 = "https://parse-server-ff.s3.amazonaws.com/ae5992f0f5bb1f259bafa41b3771e3bb_call12565815456dwwwwww795896232www-01b59bd3.mp3";
 
@@ -14,7 +16,8 @@ class AudioPlayer extends Component {
             playing: false,
             currentTime: 0,
             speedup: false,
-            loadErr: false
+            loadErr: false,
+            peaks: []
         };
     }
 
@@ -65,7 +68,21 @@ class AudioPlayer extends Component {
     }
 
     componentDidMount() {
+
         this.getSeek();
+        const extractPeaks = require('webaudio-peaks');
+        const audioContext = new AudioContext();
+        fetch(this.props.mp3url)
+        .then(response => response.arrayBuffer())
+        .then(buffer => {
+            audioContext.decodeAudioData(buffer, (decodedData) => {
+
+                //calculate peaks from an AudioBuffer
+                var peaks = extractPeaks(decodedData, 10000, true);
+                console.log(peaks);
+                this.setState({peaks:peaks.data[0]});
+              });
+        });
     }
 
     isObject(obj) {
@@ -74,7 +91,7 @@ class AudioPlayer extends Component {
 
     render() {
         const { mp3url } = this.props;
-        let { playing, currentTime, duration, speedup, loadErr } = this.state;
+        let { playing, currentTime, duration, speedup, loadErr, peaks } = this.state;
         if (this.isObject(currentTime)) currentTime = 0;
         if (mp3url == DEFAULT_MP3) duration = DEFAULT_DURATION;
         return (
@@ -93,6 +110,16 @@ class AudioPlayer extends Component {
                             <img className={speedup ? 'audio-speedup' : ""} src="/pane/speedup.svg" height={35} />
                         </button>
                     </div>
+                    <Waveform
+  barWidth={4}
+  peaks={peaks}
+  height={200}
+  pos={((currentTime || 0) / (duration || 1)) * 100 || 0}
+  duration={duration}
+  onClick={this.handleClick}
+  color="#676767"
+  progressGradientColors={[[0, "#888"], [1, "#aaa"]]}
+/>
                     <Progress
                         className="flex-auto bg-darken-3 rounded"
                         innerClassName="rounded-left bg-white"
