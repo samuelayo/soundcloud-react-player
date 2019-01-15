@@ -9,7 +9,6 @@
         "react-howler": "^3.7.4",
         "react-scripts": "1.0.17",
         "react-soundplayer": "^1.0.4",
-        "waveform-data": "^2.1.2",
         "webaudio-peaks": "0.0.6"
     },
     "scripts": {
