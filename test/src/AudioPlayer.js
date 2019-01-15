@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 
 import { PlayButton, Progress, Timer } from 'react-soundplayer/components';
 
+import './audio.css';
+
 import Waveform from 'react-audio-waveform';
 
 const extractPeaks = require('webaudio-peaks');
