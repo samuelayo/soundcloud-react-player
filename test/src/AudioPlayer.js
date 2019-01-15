@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactHowler from 'react-howler';
 import PropTypes from 'prop-types';
 
-import { PlayButton, Progress, Timer } from 'react-soundplayer/components';
+import { PlayButton, Timer } from 'react-soundplayer/components';
 
 import './audio.css';
 
@@ -85,7 +85,7 @@ class AudioPlayer extends Component {
         audioContext.decodeAudioData(buffer, decodedData => {
           //calculate peaks from an AudioBuffer
           var peaks = extractPeaks(decodedData, 10000, true);
-          console.log(peaks);
+          console.log(peaks.data[0]);
           this.setState({ peaks: peaks.data[0] });
         });
       });
@@ -129,7 +129,9 @@ class AudioPlayer extends Component {
               onClick={ts => this.seek(ts)}
               color="#A9A9A9"
               progressColor="#fff"
-            />
+            >
+            <div>...</div>
+            </Waveform>
 
             <Timer
               className={'timer'}
