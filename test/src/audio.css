@@ -1,3 +1,34 @@
 canvas {
     width: 100% !important;
 }
+
+.over {
+    width: 100%;
+}
+.oneAndOnlyDiv {
+    height: 41px;
+    width: 120px;
+    border: 3px solid purple;
+    background: white;
+    position: absolute;
+    border-radius: 8px;
+    top: -45px;
+    left: -40px;
+  }
+  .oneAndOnlyDiv:before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 20px;
+    width: 0;
+    border-top: 20px solid purple;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+  }
+
+.commentClass {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    position: absolute;
+}

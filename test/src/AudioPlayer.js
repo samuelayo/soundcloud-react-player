@@ -3,6 +3,7 @@ import ReactHowler from 'react-howler';
 import PropTypes from 'prop-types';
 
 import { PlayButton, Timer } from 'react-soundplayer/components';
+import ReactDOM from 'react-dom';
 
 // import css to make the waveform responsive.
 import './audio.css';
@@ -25,8 +26,11 @@ class AudioPlayer extends Component {
       currentTime: 0,
       speedup: false,
       loadErr: false,
-      peaks: []
+      peaks: [],
+      canvasWidth: 0,
+      comments: []
     };
+    this.myRef = React.createRef();
   }
 
   seek(secs, play) {
@@ -68,16 +72,39 @@ class AudioPlayer extends Component {
         }
         this.setState(toSet);
       }
-    }, 250);
+    }, 1000);
   }
 
+  /**
+   * This method returns the new size of the canvas which holds the waveform, 
+   * so we can represent the comments adequately\
+   * returns Void
+   */
+  resize() {
+    const canvas = ReactDOM.findDOMNode(this.myRef.current).firstChild;
+    const canvasWidth = canvas.width;
+    this.setState({ canvasWidth });
+  }
   componentWillUnmount() {
     if (this.playerInterval) clearTimeout(this.playerInterval);
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  /**
+   * This method converts the minuite of a comment to the width where it should be 
+   * on the waveform
+   * @param {Number} min the minuite which the message was left
+   * @param {Number} duration The duration of the audio track
+   */
+  progressWidth(min, duration) {
+    var percentageComplete = (min * 60) / duration;
+    return this.state.canvasWidth * percentageComplete;
   }
 
   componentDidMount() {
     this.getSeek();
     this.getWaveform();
+    window.addEventListener('resize', () => this.resize());
   }
 
   /**
@@ -85,7 +112,7 @@ class AudioPlayer extends Component {
    * It uses the extractpeaks library alongside audiocontext to retrieve that.
    * returns Void
    */
-  getWaveform(){
+  getWaveform() {
     // create an instance of the AudioContext
     const audioContext = new AudioContext();
     // fetch the guven url and return as a buffer
@@ -96,8 +123,12 @@ class AudioPlayer extends Component {
         audioContext.decodeAudioData(buffer, decodedData => {
           //calculate peaks from the decoded AudioBuffer
           var peaks = extractPeaks(decodedData, 10000, true);
+          const comments = [{ comment: 'hi', time: 1.3 }, { comment: 'yo', time: 7.36, icon: '/pane/speedup.svg' }];
           console.log(peaks.data[0]);
-          this.setState({ peaks: peaks.data[0] });
+          this.setState({ peaks: peaks.data[0], comments });
+          const canvas = ReactDOM.findDOMNode(this.myRef.current).firstChild;
+          const canvasWidth = canvas.width;
+          this.setState({ canvasWidth });
         });
       });
   }
@@ -108,7 +139,7 @@ class AudioPlayer extends Component {
 
   render() {
     const { mp3url } = this.props;
-    let { playing, currentTime, duration, speedup, loadErr, peaks } = this.state;
+    let { playing, currentTime, duration, speedup, loadErr, peaks, comments } = this.state;
     if (this.isObject(currentTime)) currentTime = 0;
     if (mp3url == DEFAULT_MP3) duration = DEFAULT_DURATION;
     return (
@@ -131,19 +162,41 @@ class AudioPlayer extends Component {
                 <img className={speedup ? 'audio-speedup' : ''} src="/pane/speedup.svg" height={35} />
               </button>
             </div>
-            <Waveform
-              barWidth={1}
-              peaks={peaks}
-              height={40}
-              pos={currentTime || 0}
-              duration={duration}
-              onClick={ts => this.seek(ts)}
-              color="#A9A9A9"
-              progressColor="#fff"
-            >
-            <div>...</div>
-            </Waveform>
-
+            <div className="over">
+              <span className="commentClass">
+                {comments.map((object, i) => (
+                  <span
+                    style={{
+                      left: this.progressWidth(object.time, duration),
+                      width: '2px',
+                      position: 'absolute',
+                      backgroundColor: 'red',
+                      top: 0,
+                      bottom: 0,
+                    }}
+                    key={i}
+                  >
+                    <span
+                      className="oneAndOnlyDiv"
+                      style={{ textAlign: 'center', color: 'black', height: 'auto', minWidth: '120px' }}
+                    >
+                      {object.comment}
+                    </span>
+                  </span>
+                ))}
+              </span>
+              <Waveform
+                ref={this.myRef}
+                barWidth={2}
+                peaks={peaks}
+                height={40}
+                pos={currentTime || 0}
+                duration={duration}
+                onClick={ts => this.seek(ts)}
+                color="#A9A9A9"
+                progressColor="#fff"
+              />
+            </div>
             <Timer
               className={'timer'}
               duration={duration} // in seconds
