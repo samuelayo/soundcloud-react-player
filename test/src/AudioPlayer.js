@@ -4,10 +4,13 @@ import PropTypes from 'prop-types';
 
 import { PlayButton, Timer } from 'react-soundplayer/components';
 
+// import css to make the waveform responsive.
 import './audio.css';
 
+// import react-audio-waveform to show the waveform
 import Waveform from 'react-audio-waveform';
 
+// require the webaudio-peaks, which will be used to get the array data from the waveform
 const extractPeaks = require('webaudio-peaks');
 
 const DEFAULT_DURATION = 456.1495; // have to use this become modifying the audio file breaks 2x speed
@@ -22,7 +25,7 @@ class AudioPlayer extends Component {
       currentTime: 0,
       speedup: false,
       loadErr: false,
-      peaks: [],
+      peaks: []
     };
   }
 
@@ -77,13 +80,21 @@ class AudioPlayer extends Component {
     this.getWaveform();
   }
 
+  /**
+   * This function creates an array of numbers from an audio to create a waveform
+   * It uses the extractpeaks library alongside audiocontext to retrieve that.
+   * returns Void
+   */
   getWaveform(){
+    // create an instance of the AudioContext
     const audioContext = new AudioContext();
+    // fetch the guven url and return as a buffer
     fetch(this.props.mp3url)
       .then(response => response.arrayBuffer())
       .then(buffer => {
+        // decode the audio data from the buffere
         audioContext.decodeAudioData(buffer, decodedData => {
-          //calculate peaks from an AudioBuffer
+          //calculate peaks from the decoded AudioBuffer
           var peaks = extractPeaks(decodedData, 10000, true);
           console.log(peaks.data[0]);
           this.setState({ peaks: peaks.data[0] });
